@@ -5,48 +5,55 @@ using UnityEngine;
 public class Alarm : MonoBehaviour
 {
     private AudioSource _audioSource;
-    private float _step = 1f;
-    private float _delay = 0.1f;
-    private bool _enabled = false;
+    private float _step = 0.1f;
+    private float _delay = 0.5f;
+    private bool _volumeIncrease = false;
+    private Coroutine _coroutine;
+
+    public void SetVolumeIncrease(bool value)
+    {
+        _volumeIncrease = value;
+    }
 
     private void Awake()
     {
         _audioSource = GetComponent<AudioSource>();
+        _coroutine = StartCoroutine(SmoothVolumeChange());
     }
 
-    private void OnCollisionEnter(Collision collision)
+    private void OnDisable()
     {
-        _enabled = true;
-        StopCoroutine(SmoothVolumeDecrease());
-        StartCoroutine(SmoothVolumeIncrease());
+        StopCoroutine(_coroutine);
     }
 
-    private void OnCollisionExit(Collision collision)
-    {
-        _enabled = false;
-        StopCoroutine(SmoothVolumeIncrease());
-        StartCoroutine(SmoothVolumeDecrease());
-    }
-
-    private IEnumerator SmoothVolumeIncrease()
+    private IEnumerator SmoothVolumeChange()
     {
         var wait = new WaitForSeconds(_delay);
 
-        while (_enabled)
+        while (enabled)
         {
-            _audioSource.volume += _step * Time.deltaTime;
-            yield return wait;
-        }
-    }
+            if (_volumeIncrease)
+            {
+                if (_audioSource.volume == 0)
+                {
+                    _audioSource.Play();
+                }
 
-    private IEnumerator SmoothVolumeDecrease()
-    {
-        var wait = new WaitForSeconds(_delay);
+                _audioSource.volume += _step;
 
-        while (_enabled == false)
-        {
-            _audioSource.volume -= _step * Time.deltaTime;
-            yield return wait;
+                yield return wait;
+            }
+            else
+            {
+                _audioSource.volume -= _step;
+
+                if (_audioSource.volume == 0)
+                {
+                    _audioSource.Stop();
+                }
+
+                yield return wait;
+            }
         }
     }
 }
