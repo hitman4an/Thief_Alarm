@@ -4,15 +4,22 @@ using UnityEngine;
 [RequireComponent (typeof(AudioSource))]
 public class Alarm : MonoBehaviour
 {
+    [SerializeField] private Trigger _trigger;
+    
     private AudioSource _audioSource;
     private float _step = 0.1f;
     private float _delay = 0.5f;
     private bool _volumeIncrease = false;
     private Coroutine _coroutine;
 
-    public void SetVolumeIncrease(bool value)
+    private void SetVolumeIncrease()
     {
-        _volumeIncrease = value;
+        _volumeIncrease = true;
+    }
+
+    private void SetVolumeDecrease()
+    {
+        _volumeIncrease = false;
     }
 
     private void Awake()
@@ -21,8 +28,16 @@ public class Alarm : MonoBehaviour
         _coroutine = StartCoroutine(SmoothVolumeChange());
     }
 
+    private void OnEnable()
+    {
+        _trigger.ThiefEntered += SetVolumeIncrease;
+        _trigger.ThiefQuit += SetVolumeDecrease;
+    }
+
     private void OnDisable()
     {
+        _trigger.ThiefEntered -= SetVolumeIncrease;
+        _trigger.ThiefQuit -= SetVolumeDecrease;
         StopCoroutine(_coroutine);
     }
 

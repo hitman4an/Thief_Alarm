@@ -1,16 +1,20 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 public class Trigger : MonoBehaviour
 {
-    [SerializeField] private Alarm _alarm;
+    public event Action ThiefEntered;
+    public event Action ThiefQuit;
 
-    private bool _isEnabled = false;
-
-    private void OnTriggerEnter()
+    private void OnTriggerEnter(Collider collider)
     {
-        _isEnabled = !_isEnabled;
-        _alarm.SetVolumeIncrease(_isEnabled);
+        if (collider.GetComponent<Thief>())
+            ThiefEntered?.Invoke();
+    }
+
+    private void OnTriggerExit(Collider collider)
+    {
+        if (collider.GetComponent<Thief>())
+            ThiefQuit?.Invoke();
     }
 }
